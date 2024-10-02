@@ -22,18 +22,17 @@
             color: #333;
         }
 
-        .description {
+        .explanation {
             text-align: center;
-            margin-top: 10px;
-            margin-bottom: 20px;
             font-size: 16px;
             color: #666;
+            margin-top: 10px;
+            margin-bottom: 30px;
         }
 
-        hr {
-            border: none;
-            border-top: 1px solid #ddd;
-            margin-bottom: 20px;
+        .line-separator {
+            border-top: 1px solid #ccc;
+            margin: 20px 0;
         }
 
         .form-container {
@@ -138,17 +137,17 @@
             color: #fff;
             text-align: center;
             border-radius: 6px;
-            padding: 10px; /* Padding aumentado */
+            padding: 10px;
             position: absolute;
             z-index: 1;
-            bottom: 100%; /* Posicionado acima do ícone */
+            bottom: 100%;
             left: 50%;
-            transform: translateX(-50%); /* Centralizar */
-            margin-bottom: 10px; /* Espaçamento extra */
+            transform: translateX(-50%);
+            margin-bottom: 10px;
             opacity: 0;
             transition: opacity 0.3s ease;
             font-size: 12px;
-            width: 220px; /* Largura ajustada */
+            width: 220px;
         }
 
         .tooltip-container:hover .tooltip-text {
@@ -186,13 +185,6 @@
             width: 100%;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-            margin-bottom: 20px;
-        }
-
-        .export-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
             margin-bottom: 20px;
         }
 
@@ -266,12 +258,11 @@
 <body>
     <h1>samplesMapper</h1>
 
-    <!-- Breve explicação -->
-    <div class="description">
-        samplesMapper is a tool for visualizing geographic sample data. It allows users to plot samples by their coordinates, choose colors, and export maps with marked points.
+    <div class="explanation">
+        The samplesMapper tool allows users to upload and map geographic samples. You can manually input sample data, including latitude and longitude, or upload a CSV file to visualize sample locations on an interactive map.
     </div>
 
-    <hr>
+    <div class="line-separator"></div>
 
     <!-- Method selection -->
     <div class="method-container">
@@ -354,12 +345,6 @@
     <!-- Mapa -->
     <div id="map"></div>
 
-    <!-- Botões de exportação -->
-    <div class="export-buttons">
-        <button id="exportPNG">Export as PNG</button>
-        <button id="exportSVG">Export as SVG</button>
-    </div>
-
     <!-- Mensagem de status -->
     <div class="status-message" id="statusMessage"></div>
 
@@ -373,7 +358,6 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script>
         var db;
@@ -739,37 +723,6 @@
             }
             addMarker(sample.latitude, sample.longitude, sample.name, sample.color, sample.id); // Adiciona o marcador atualizado
         }
-
-        // Função para exportar o mapa como PNG
-        document.getElementById('exportPNG').addEventListener('click', function() {
-            html2canvas(document.querySelector("#map")).then(canvas => {
-                let link = document.createElement('a');
-                link.download = 'map.png';
-                link.href = canvas.toDataURL();
-                link.click();
-            });
-        });
-
-        // Função para exportar o mapa como SVG
-        document.getElementById('exportSVG').addEventListener('click', function() {
-            let svg = document.querySelector('.leaflet-pane.leaflet-map-pane').querySelector('svg');
-            if (svg) {
-                let serializer = new XMLSerializer();
-                let source = serializer.serializeToString(svg);
-
-                let svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
-                let url = URL.createObjectURL(svgBlob);
-
-                let link = document.createElement('a');
-                link.href = url;
-                link.download = 'map.svg';
-                link.click();
-
-                URL.revokeObjectURL(url);
-            } else {
-                showStatusMessage('No SVG data found to export.', 'error');
-            }
-        });
 
         // Inicializar o IndexedDB
         initIndexedDB();
