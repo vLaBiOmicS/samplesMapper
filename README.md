@@ -1,2 +1,2 @@
+![samplesMapper](map.png)
 # samplesMapper
-![LaBiOmicS logo](map.png)
