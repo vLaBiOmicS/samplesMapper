@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>samplesMapper</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0 20px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-top: 20px;
+            color: #333;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .method-container {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .method-container label {
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        form, .action-buttons {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        input, select, button {
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            width: 150px;
+        }
+
+        input[type="color"] {
+            padding: 0;
+            width: 50px;
+            height: 40px;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 150px;
+            height: 45px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .file-upload {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 150px;
+            height: 45px;
+            text-align: center;
+            line-height: 45px;
+        }
+
+        .file-upload:hover {
+            background-color: #0069d9;
+        }
+
+        .file-upload input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            height: 100%;
+            width: 100%;
+        }
+
+        #fileName {
+            margin-left: 10px;
+            font-size: 12px;
+            color: #555;
+            display: inline-block;
+            min-width: 100px;
+        }
+
+        .tooltip-icon {
+            cursor: pointer;
+            font-weight: bold;
+            margin-left: 5px;
+            color: #007bff;
+            font-size: 14px;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px; /* Padding aumentado */
+            position: absolute;
+            z-index: 1;
+            bottom: 100%; /* Posicionado acima do ícone */
+            left: 50%;
+            transform: translateX(-50%); /* Centralizar */
+            margin-bottom: 10px; /* Espaçamento extra */
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 12px;
+            width: 220px; /* Largura ajustada */
+        }
+
+        .tooltip-container:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .tooltip-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .status-message {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .status-message.show {
+            opacity: 1;
+        }
+
+        #loadingIndicator {
+            display: none;
+            text-align: center;
+            font-size: 16px;
+            color: #007bff;
+        }
+
+        .loading-visible {
+            display: block;
+        }
+
+        #map {
+            height: 500px;
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+            margin-top: 20px;
+            padding-bottom: 10px;
+        }
+
+        .footer .developed-by {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #555;
+        }
+
+        @media (max-width: 768px) {
+            form, .action-buttons {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            input, select, button {
+                width: 100%;
+            }
+
+            #map {
+                height: 300px;
+            }
+        }
+
+        /* Style for the samples table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        button.edit, button.delete {
+            padding: 5px 10px;
+            margin: 2px;
+            cursor: pointer;
+        }
+
+        button.edit {
+            background-color: #007bff;
+            color: white;
+        }
+
+        button.delete {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>samplesMapper</h1>
+
+    <!-- Method selection -->
+    <div class="method-container">
+        <label for="methodSelector">Select Overlap Handling Method:</label>
+        <select id="methodSelector">
+            <option value="default">Default</option>
+            <option value="jitter">Jitter</option>
+            <option value="cluster">Cluster</option>
+        </select>
+        <div class="tooltip-container">
+            <span class="tooltip-icon">?</span>
+            <span class="tooltip-text">Select how to handle overlapping points on the map: Default, Jitter (slightly shift points), or Cluster (group points together).</span>
+        </div>
+    </div>
+
+    <!-- Form to add samples manually -->
+    <div class="form-container">
+        <form id="coordinateForm">
+            <label for="sample">Sample:</label>
+            <input type="text" id="sample" placeholder="Sample Name" required>
+            <div class="tooltip-container">
+                <span class="tooltip-icon">?</span>
+                <span class="tooltip-text">Enter the sample name (e.g., Sample ID or code).</span>
+            </div>
+
+            <label for="latitude">Latitude:</label>
+            <input type="text" id="latitude" placeholder="-23.550520" required>
+            <div class="tooltip-container">
+                <span class="tooltip-icon">?</span>
+                <span class="tooltip-text">Enter the latitude (between -90 and 90).</span>
+            </div>
+
+            <label for="longitude">Longitude:</label>
+            <input type="text" id="longitude" placeholder="-46.633308" required>
+            <div class="tooltip-container">
+                <span class="tooltip-icon">?</span>
+                <span class="tooltip-text">Enter the longitude (between -180 and 180).</span>
+            </div>
+
+            <label for="colorPicker">Color:</label>
+            <input type="color" id="colorPicker" value="#ff0000" required>
+            <div class="tooltip-container">
+                <span class="tooltip-icon">?</span>
+                <span class="tooltip-text">Pick a color for the sample (RGB format).</span>
+            </div>
+
+            <button type="submit">Add Sample</button>
+        </form>
+
+        <!-- CSV Upload -->
+        <div class="action-buttons">
+            <label class="file-upload">
+                Choose File
+                <input type="file" id="csvFileInput" accept=".csv" />
+            </label>
+            <span id="fileName">No file chosen</span>
+            <button id="uploadCSV">Upload CSV</button>
+        </div>
+
+        <!-- Indicador de carregamento -->
+        <div id="loadingIndicator">Processing CSV, please wait...</div>
+    </div>
+
+    <!-- Tabela para exibir as amostras -->
+    <table id="samplesTable">
+        <thead>
+            <tr>
+                <th>Sample</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
+                <th>Color</th>
+                <th>Visible</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <!-- Mapa -->
+    <div id="map"></div>
+
+    <!-- Mensagem de status -->
+    <div class="status-message" id="statusMessage"></div>
+
+    <!-- Footer -->
+    <div class="footer">
+        &copy; 2024 samplesMapper - All rights reserved.
+        <div class="developed-by">Developed by the Laboratory of Bioinformatics and Omics Sciences (LaBiOmicS) at UMC</div>
+    </div>
+
+    <!-- Leaflet e IndexedDB -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+    <script>
+        var db;
+        let markers = {}; // Para armazenar marcadores pelo ID da amostra
+        let editId = null; // Para armazenar o ID da amostra que está sendo editada
+
+        // Função debounce para otimizar as entradas
+        function debounce(func, delay) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), delay);
+            };
+        }
+
+        function initIndexedDB() {
+            let request = indexedDB.open('samplesMapperDB', 1);
+
+            request.onupgradeneeded = function(event) {
+                db = event.target.result;
+                let objectStore = db.createObjectStore('samples', { keyPath: 'id', autoIncrement: true });
+                objectStore.createIndex('name', 'name', { unique: false });
+            };
+
+            request.onsuccess = function(event) {
+                db = event.target.result;
+                loadSamplesFromDB();
+            };
+
+            request.onerror = function(event) {
+                console.log('Erro ao abrir IndexedDB:', event);
+            };
+        }
+
+        function addSampleToDB(sample) {
+            let transaction = db.transaction(['samples'], 'readwrite');
+            let objectStore = transaction.objectStore('samples');
+            let request = objectStore.add(sample);
+
+            request.onerror = function(event) {
+                console.error("Failed to add sample to IndexedDB:", event);
+            };
+
+            request.onsuccess = function() {
+                console.log("Sample added successfully to IndexedDB.");
+            };
+        }
+
+        function updateSampleInDB(sample) {
+            let transaction = db.transaction(['samples'], 'readwrite');
+            let objectStore = transaction.objectStore('samples');
+            let request = objectStore.put(sample);
+
+            request.onerror = function(event) {
+                console.error("Failed to update sample in IndexedDB:", event);
+            };
+
+            request.onsuccess = function() {
+                console.log("Sample updated successfully.");
+            };
+        }
+
+        function loadSamplesFromDB() {
+            let transaction = db.transaction(['samples'], 'readonly');
+            let objectStore = transaction.objectStore('samples');
+            let request = objectStore.getAll();
+
+            request.onsuccess = function(event) {
+                let samples = event.target.result;
+                samples.forEach(function(sample) {
+                    addMarker(sample.latitude, sample.longitude, sample.name, sample.color, sample.id);
+                    addSampleToTable(sample);
+                });
+            };
+        }
+
+        function deleteSampleFromDB(id) {
+            let transaction = db.transaction(['samples'], 'readwrite');
+            let objectStore = transaction.objectStore('samples');
+            objectStore.delete(id);
+        }
+
+        let map = L.map('map').setView([0, 0], 2);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        let markersCluster = L.markerClusterGroup();
+        let regularMarkers = L.layerGroup().addTo(map);
+
+        let selectedMethod = "default";
+
+        document.getElementById("methodSelector").addEventListener("change", function () {
+            selectedMethod = this.value;
+            if (selectedMethod === "cluster") {
+                map.addLayer(markersCluster);
+                map.removeLayer(regularMarkers);
+            } else {
+                map.addLayer(regularMarkers);
+                map.removeLayer(markersCluster);
+            }
+        });
+
+        document.getElementById('csvFileInput').addEventListener('change', function() {
+            let fileInput = document.getElementById('csvFileInput');
+            let fileNameDisplay = document.getElementById('fileName');
+            fileNameDisplay.textContent = fileInput.files.length > 0 ? fileInput.files[0].name : 'No file chosen';
+        });
+
+        let previewMarker;
+
+        // Aplicando debounce nas entradas de latitude e longitude
+        document.getElementById('latitude').addEventListener('input', debounce(updatePreviewMarker, 300));
+        document.getElementById('longitude').addEventListener('input', debounce(updatePreviewMarker, 300));
+
+        function updatePreviewMarker() {
+            const lat = parseFloat(document.getElementById('latitude').value);
+            const lon = parseFloat(document.getElementById('longitude').value);
+
+            if (!isNaN(lat) && !isNaN(lon)) {
+                if (previewMarker) {
+                    map.removeLayer(previewMarker);
+                }
+                previewMarker = L.marker([lat, lon]).addTo(map).bindPopup('Preview Point');
+            }
+        }
+
+        function validateInput(id, min, max) {
+            const input = document.getElementById(id);
+            const value = parseFloat(input.value);
+
+            if (!isNaN(value) && value >= min && value <= max) {
+                input.style.borderColor = 'green';
+            } else {
+                input.style.borderColor = 'red';
+            }
+        }
+
+        document.getElementById('latitude').addEventListener('input', () => {
+            validateInput('latitude', -90, 90);
+        });
+        document.getElementById('longitude').addEventListener('input', () => {
+            validateInput('longitude', -180, 180);
+        });
+
+        function createCircleMarker(lat, lon, color) {
+            return L.circleMarker([lat, lon], {
+                color: color,
+                radius: 4,
+                fillColor: color,
+                fillOpacity: 1,
+                weight: 2,
+            });
+        }
+
+        function addMarker(lat, lon, sample, color, id) {
+            let marker = createCircleMarker(lat, lon, color);
+            marker.bindPopup(`Sample: ${sample}<br>Coordinates: ${lat.toFixed(6)}, ${lon.toFixed(6)}<br>Color: ${color}`);
+            
+            markers[id] = marker;
+
+            if (selectedMethod === "jitter") {
+                markersCluster.addLayer(marker);
+            } else {
+                regularMarkers.addLayer(marker);
+            }
+        }
+
+        function showStatusMessage(message, type = 'success') {
+            let statusMessage = document.getElementById('statusMessage');
+            statusMessage.style.color = type === 'error' ? '#e74c3c' : '#28a745';
+            statusMessage.textContent = message;
+            statusMessage.classList.add('show');
+
+            setTimeout(() => {
+                statusMessage.classList.remove('show');
+            }, 3000);
+        }
+
+        function showLoadingIndicator(visible) {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            if (visible) {
+                loadingIndicator.classList.add('loading-visible');
+            } else {
+                loadingIndicator.classList.remove('loading-visible');
+            }
+        }
+
+        function processCSVInBatches(data, batchSize = 100) {
+            let batchStart = 0;
+            let totalEntries = data.length;
+
+            function processBatch() {
+                let batchEnd = Math.min(batchStart + batchSize, totalEntries);
+                let batch = data.slice(batchStart, batchEnd);
+
+                batch.forEach(row => {
+                    let sample = {
+                        name: row['Sample'],
+                        latitude: parseFloat(row['Latitude']),
+                        longitude: parseFloat(row['Longitude']),
+                        color: row['Color'] || '#ff0000',
+                        id: Date.now() + batchStart // Criar IDs únicos para cada amostra
+                    };
+
+                    if (!isNaN(sample.latitude) && !isNaN(sample.longitude)) {
+                        addMarker(sample.latitude, sample.longitude, sample.name, sample.color, sample.id);
+                        addSampleToDB(sample);
+                        addSampleToTable(sample);
+                    }
+                });
+
+                batchStart += batchSize;
+
+                if (batchStart < totalEntries) {
+                    // Continuar processando o próximo lote
+                    setTimeout(processBatch, 50);
+                } else {
+                    showStatusMessage('CSV processed successfully!');
+                    showLoadingIndicator(false);
+                }
+            }
+
+            // Iniciar o processamento por lotes
+            processBatch();
+        }
+
+        document.getElementById('uploadCSV').addEventListener('click', function() {
+            let fileInput = document.getElementById('csvFileInput');
+            if (fileInput.files.length === 0) {
+                showStatusMessage('Please select a CSV file.', 'error');
+                return;
+            }
+
+            let file = fileInput.files[0];
+            showLoadingIndicator(true);
+
+            Papa.parse(file, {
+                header: true,
+                complete: function(results) {
+                    if (!results.data[0].hasOwnProperty('Sample') ||
+                        !results.data[0].hasOwnProperty('Latitude') ||
+                        !results.data[0].hasOwnProperty('Longitude')) {
+                        showStatusMessage('CSV must contain columns: Sample, Latitude, Longitude.', 'error');
+                        showLoadingIndicator(false);
+                        return;
+                    }
+
+                    processCSVInBatches(results.data);
+                }
+            });
+        });
+
+        document.getElementById('coordinateForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            let sample = {
+                name: document.getElementById('sample').value,
+                latitude: parseFloat(document.getElementById('latitude').value),
+                longitude: parseFloat(document.getElementById('longitude').value),
+                color: document.getElementById('colorPicker').value
+            };
+
+            if (!isNaN(sample.latitude) && !isNaN(sample.longitude) && sample.name && sample.color) {
+                // Remover o marcador de pré-visualização
+                if (previewMarker) {
+                    map.removeLayer(previewMarker);
+                }
+
+                if (editId) {
+                    // Atualizar amostra existente
+                    sample.id = editId;
+                    updateSampleInDB(sample);
+                    updateMarker(sample);  // Função para atualizar o marcador no mapa
+
+                    // Atualizar a linha da tabela
+                    document.getElementById(`sample-${sample.id}`).innerHTML = createTableRow(sample).innerHTML;
+
+                    showStatusMessage(`Sample "${sample.name}" updated successfully!`);
+                    editId = null; // Resetar o modo de edição
+                } else {
+                    // Adicionar nova amostra
+                    let id = Date.now(); // Gerar um ID único para a amostra
+                    sample.id = id;
+                    addMarker(sample.latitude, sample.longitude, sample.name, sample.color, id);
+                    addSampleToDB(sample);
+                    addSampleToTable(sample);
+                    showStatusMessage(`Sample "${sample.name}" added successfully!`);
+                }
+
+                // Resetar o formulário
+                document.getElementById('coordinateForm').reset();
+            } else {
+                showStatusMessage('Please enter valid sample and coordinates.', 'error');
+            }
+        });
+
+        function addSampleToTable(sample) {
+            let table = document.getElementById('samplesTable').getElementsByTagName('tbody')[0];
+            let row = table.insertRow();
+            row.id = `sample-${sample.id}`;
+            row.innerHTML = createTableRow(sample).innerHTML;
+        }
+
+        function createTableRow(sample) {
+            let row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${sample.name}</td>
+                <td>${sample.latitude.toFixed(6)}</td>
+                <td>${sample.longitude.toFixed(6)}</td>
+                <td><span style="background-color: ${sample.color}; width: 20px; height: 20px; display: inline-block;"></span></td>
+                <td><input type="checkbox" id="visibility-${sample.id}" checked onchange="toggleVisibility(${sample.id})"></td>
+                <td><button class="edit" onclick="editSample(${sample.id})">Edit</button> 
+                    <button class="delete" onclick="deleteSample(${sample.id})">Delete</button></td>`;
+            return row;
+        }
+
+        function deleteSample(id) {
+            // Remover do mapa
+            if (markers[id]) {
+                map.removeLayer(markers[id]);
+            }
+
+            // Remover da tabela
+            document.getElementById(`sample-${id}`).remove();
+
+            // Remover do banco de dados
+            deleteSampleFromDB(id);
+        }
+
+        function toggleVisibility(id) {
+            let checkbox = document.getElementById(`visibility-${id}`);
+            if (checkbox.checked) {
+                map.addLayer(markers[id]);
+            } else {
+                map.removeLayer(markers[id]);
+            }
+        }
+
+        function editSample(id) {
+            let transaction = db.transaction(['samples'], 'readonly');
+            let objectStore = transaction.objectStore('samples');
+            let request = objectStore.get(id);
+
+            request.onsuccess = function(event) {
+                let sample = event.target.result;
+
+                // Preencher os campos do formulário com os dados da amostra
+                document.getElementById('sample').value = sample.name;
+                document.getElementById('latitude').value = sample.latitude;
+                document.getElementById('longitude').value = sample.longitude;
+                document.getElementById('colorPicker').value = sample.color;
+
+                // Definir o ID de edição
+                editId = id;
+            };
+        }
+
+        function updateMarker(sample) {
+            if (markers[sample.id]) {
+                map.removeLayer(markers[sample.id]); // Remove o marcador antigo
+            }
+            addMarker(sample.latitude, sample.longitude, sample.name, sample.color, sample.id); // Adiciona o marcador atualizado
+        }
+
+        // Inicializar o IndexedDB
+        initIndexedDB();
+
+    </script>
+</body>
+</html>
