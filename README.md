@@ -2,8 +2,6 @@
 
 # samplesMapper
 
-# **samplesMapper Documentation**
-
 ## **1. Overview**
 
 **samplesMapper** is an interactive tool designed to visualize geographic data points on a map. Users can input sample information either manually or by uploading a CSV file. The tool allows for customization of sample colors and provides various methods to handle overlapping points on the map. It is primarily used for mapping biological, environmental, or other types of geographic samples.
